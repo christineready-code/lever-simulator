@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lever Mechanical Advantage Simulator</title>
+<style>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#192b3c;background:#f5f7fa}*{box-sizing:border-box}body{margin:0;padding:20px}.app{max-width:960px;margin:auto;background:white;border:1px solid #dce3eb;border-radius:18px;padding:24px;box-shadow:0 8px 25px #142a4210}h1{font-size:clamp(22px,3vw,30px);margin:0 0 5px}.subtitle{color:#586a7b;margin:0 0 15px}.diagram{width:100%;height:auto;display:block;background:#fafcfe;border-radius:12px;border:1px solid #e4eaf0;touch-action:none}.controls{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:22px 0}.control label{display:flex;justify-content:space-between;font-weight:650;margin-bottom:12px;gap:10px}.control output{font-variant-numeric:tabular-nums;color:#405b73}.control input{width:100%;accent-color:#416f9c;cursor:pointer}.ends{display:flex;justify-content:space-between;font-size:12px;color:#687b8b}.results{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.metric{background:#f0f4f8;border-radius:12px;padding:16px 12px;min-width:0}.metric .name{font-size:13px;color:#536779}.metric .value{font-size:clamp(19px,2.7vw,28px);font-weight:750;font-variant-numeric:tabular-nums;margin-top:7px}.note{color:#657585;font-size:13px;line-height:1.5;margin:16px 0 0}@media(max-width:680px){body{padding:8px}.app{padding:14px}.controls{grid-template-columns:1fr;gap:16px}.results{grid-template-columns:repeat(2,1fr)}.metric{padding:12px}.diagram{min-height:180px}}@media(prefers-reduced-motion:no-preference){.metric{transition:background .2s}} 
+</style>
+</head>
+<body><main class="app"><h1>Lever Mechanical Advantage Simulator</h1><p class="subtitle">Move the fulcrum or change the load to see how much effort is needed.</p>
+<svg class="diagram" id="diagram" viewBox="0 0 760 300" role="img" aria-label="First-class lever with load on the left, effort on the right, and a movable fulcrum. Drag the fulcrum to adjust its position.">
+<line x1="42" y1="245" x2="718" y2="245" stroke="#b9c5d0" stroke-width="2"/>
+<rect x="55" y="144" width="650" height="17" rx="4" fill="#86a4c0" stroke="#496b88" stroke-width="2"/>
+<rect x="68" y="83" width="93" height="59" rx="6" fill="#a8be91" stroke="#607d4c" stroke-width="2"/><text id="loadText" x="114" y="119" text-anchor="middle" font-size="18" font-weight="700" fill="#2e4228">120 lb</text>
+<path d="M114 40 V78 M104 68 L114 80 L124 68" fill="none" stroke="#478661" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="114" y="29" text-anchor="middle" font-size="19" font-weight="650" fill="#478661">Load</text>
+<path d="M652 42 V137 M642 127 L652 140 L662 127" fill="none" stroke="#cf7b42" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="652" y="29" text-anchor="middle" font-size="19" font-weight="650" fill="#a95e2c">Effort</text>
+<g id="fulcrum" style="cursor:ew-resize"><polygon id="triangle" points="265,163 305,163 285,242" fill="#e7ab5c" stroke="#a16c30" stroke-width="3"/><circle id="handle" cx="285" cy="163" r="17" fill="#f2c789" stroke="#a16c30" stroke-width="3"/><text id="fulcrumLabel" x="285" y="272" text-anchor="middle" font-size="17" font-weight="650" fill="#8a5c29">Fulcrum</text></g>
+<line id="resistanceDistance" x1="114" y1="198" x2="285" y2="198" stroke="#478661" stroke-width="3" stroke-dasharray="6 5"/><line id="effortDistance" x1="285" y1="198" x2="652" y2="198" stroke="#cf7b42" stroke-width="3" stroke-dasharray="6 5"/>
+<text id="resistanceLabel" x="200" y="190" font-size="15" fill="#478661" text-anchor="middle">Resistance arm</text><text id="effortLabel" x="470" y="190" font-size="15" fill="#a95e2c" text-anchor="middle">Effort arm</text>
+</svg>
+<section class="controls" aria-label="Simulator controls"><div class="control"><label for="position">Fulcrum position <output id="positionValue">30% from load end</output></label><input id="position" type="range" min="10" max="90" step="1" value="30"><div class="ends"><span>Closer to load</span><span>Closer to effort</span></div></div><div class="control"><label for="load">Load weight <output id="loadValue">120 lb</output></label><input id="load" type="range" min="40" max="240" step="10" value="120"><div class="ends"><span>40 lb</span><span>240 lb</span></div></div></section>
+<section class="results" aria-live="polite"><div class="metric"><div class="name">Resistance arm</div><div class="value" id="resistanceArm">30%</div></div><div class="metric"><div class="name">Effort arm</div><div class="value" id="effortArm">70%</div></div><div class="metric"><div class="name">Ideal mechanical advantage</div><div class="value" id="ma">2.33</div></div><div class="metric"><div class="name">Required effort force</div><div class="value" id="force">51.4 lb</div></div></section>
+<p class="note">Ideal first-class lever in static equilibrium; friction and the lever's own weight are ignored. Arm lengths are shown as percentages of the distance between the load and effort points. IMA = effort arm ÷ resistance arm. Required effort = load ÷ IMA.</p></main>
+<script>
+const position=document.getElementById('position'),load=document.getElementById('load'),svg=document.getElementById('diagram');
+function update(){const p=Number(position.value),w=Number(load.value),r=p,e=100-p,ma=e/r,force=w/ma,x=114+(652-114)*p/100;
+const set=(id,v)=>document.getElementById(id).textContent=v;
+set('positionValue',`${p}% from load end`);set('loadValue',`${w} lb`);set('loadText',`${w} lb`);set('resistanceArm',`${r}%`);set('effortArm',`${e}%`);set('ma',ma.toFixed(2));set('force',`${force.toFixed(1)} lb`);
+document.getElementById('triangle').setAttribute('points',`${x-20},163 ${x+20},163 ${x},242`);document.getElementById('handle').setAttribute('cx',x);document.getElementById('fulcrumLabel').setAttribute('x',x);
+document.getElementById('resistanceDistance').setAttribute('x2',x);document.getElementById('effortDistance').setAttribute('x1',x);
+document.getElementById('resistanceLabel').setAttribute('x',(114+x)/2);document.getElementById('effortLabel').setAttribute('x',(x+652)/2);
+}
+[position,load].forEach(el=>el.addEventListener('input',update));
+let dragging=false;function move(ev){if(!dragging)return;const pt=svg.createSVGPoint();pt.x=ev.clientX;pt.y=ev.clientY;const matrix=svg.getScreenCTM();if(!matrix)return;const local=pt.matrixTransform(matrix.inverse());const pct=Math.round((local.x-114)/(652-114)*100);position.value=Math.min(90,Math.max(10,pct));update();}
+const dragTarget=document.getElementById('fulcrum');dragTarget.addEventListener('pointerdown',ev=>{dragging=true;dragTarget.setPointerCapture(ev.pointerId);move(ev)});dragTarget.addEventListener('pointermove',move);dragTarget.addEventListener('pointerup',()=>dragging=false);dragTarget.addEventListener('pointercancel',()=>dragging=false);
+update();
+</script></body></html>
